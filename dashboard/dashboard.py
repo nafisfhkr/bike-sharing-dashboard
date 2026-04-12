@@ -30,7 +30,7 @@ with st.sidebar:
     st.image("https://github.com/dicodingacademy/assets/raw/main/logo.png")
     st.title("Bike Sharing Dashboard")
     
-    # 1. Filter Rentang Waktu (Memenuhi Syarat Reviewer)
+    # Filter Rentang Waktu
     st.subheader("Filter Waktu")
     start_date, end_date = st.date_input(
         label='Pilih Rentang Waktu',
@@ -39,7 +39,7 @@ with st.sidebar:
         value=[min_date, max_date]
     )
     
-    # 2. Filter Musim
+    # Filter Musim
     st.subheader("Filter Musim")
     season_filter = st.selectbox(
         "Pilih Musim:",
@@ -77,31 +77,55 @@ with col2:
 
 st.markdown("---")
 
-# Row 2: Visualisasi Pertanyaan 1 (Pengaruh Cuaca)
-st.subheader("Pengaruh Kondisi Cuaca terhadap Penyewaan")
-fig1, ax1 = plt.subplots(figsize=(10, 5))
+# Row 2: Visualisasi Pertanyaan 1 (Pengaruh Musim & Cuaca)
+st.subheader("Pengaruh Musim dan Kondisi Cuaca terhadap Penyewaan")
+fig1, ax1 = plt.subplots(nrows=1, ncols=2, figsize=(16, 6))
+
 if not day_df_filtered.empty:
-    sns.barplot(x="weathersit", y="cnt", data=day_df_filtered, ax=ax1, palette="magma", errorbar=None)
-    ax1.set_ylabel("Rata-rata Penyewaan")
-    ax1.set_xlabel("Kondisi Cuaca")
+    # Plot 1: Musim
+    sns.barplot(x="season", y="cnt", data=day_df_filtered, ax=ax1[0], palette="viridis", errorbar=None)
+    ax1[0].set_title("Rata-rata Penyewaan Berdasarkan Musim", fontsize=15, pad=15)
+    ax1[0].set_xlabel("Musim", fontsize=12)
+    ax1[0].set_ylabel("Rata-rata Penyewaan", fontsize=12)
+
+    # Plot 2: Cuaca
+    sns.barplot(x="weathersit", y="cnt", data=day_df_filtered, ax=ax1[1], palette="magma", errorbar=None)
+    ax1[1].set_title("Rata-rata Penyewaan Berdasarkan Kondisi Cuaca", fontsize=15, pad=15)
+    ax1[1].set_xlabel("Kondisi Cuaca", fontsize=12)
+    ax1[1].set_ylabel("Rata-rata Penyewaan", fontsize=12)
+    ax1[1].tick_params(axis='x', rotation=15)
+
+    plt.tight_layout()
     st.pyplot(fig1)
 else:
     st.warning("Data tidak tersedia untuk rentang waktu dan musim ini.")
 
 st.markdown("---")
 
-# Row 3: Visualisasi Pertanyaan 2 (Clustering/Binning Waktu)
-st.subheader("Tren Penyewaan: Jam Sibuk vs Jam Santai")
-st.write("Visualisasi ini membandingkan pola penyewaan sepeda berdasarkan kategori waktu (hasil clustering).")
+# Row 3: Visualisasi Pertanyaan 2 (Pola Jam & Clustering)
+st.subheader("Pola Per Jam dan Tren Penyewaan: Jam Sibuk vs Jam Santai")
 
-fig2, ax2 = plt.subplots(figsize=(10, 5))
+fig2, ax2 = plt.subplots(nrows=2, ncols=1, figsize=(14, 12))
+
 if not hour_df_filtered.empty:
-    sns.barplot(x="time_category", y="cnt", hue="workingday", data=hour_df_filtered, ax=ax2, palette="Set2", errorbar=None)
-    ax2.set_ylabel("Rata-rata Penyewaan")
-    ax2.set_xlabel("Kategori Waktu")
-    ax2.legend(title="Hari Kerja", labels=["Libur", "Kerja"])
+    # Plot 1: Pola Per Jam dengan Line Chart
+    sns.lineplot(x="hr", y="cnt", hue="workingday", data=hour_df_filtered, ax=ax2[0], palette="Set1", marker="o")
+    ax2[0].set_title("Pola Penyewaan Sepeda per Jam (Hari Kerja vs Hari Libur)", fontsize=15, pad=15)
+    ax2[0].set_xlabel("Jam (0-23)", fontsize=12)
+    ax2[0].set_ylabel("Rata-rata Penyewaan", fontsize=12)
+    ax2[0].set_xticks(range(0, 24))
+    ax2[0].legend(title="Hari Kerja", labels=["Tidak (Hari Libur)", "Ya (Hari Kerja)"])
+
+    # Plot 2: Hasil Clustering Kategori Waktu
+    sns.barplot(x="time_category", y="cnt", hue="workingday", data=hour_df_filtered, ax=ax2[1], palette="Set2", errorbar=None)
+    ax2[1].set_title("Rata-rata Penyewaan Berdasarkan Kategori Waktu (Hasil Clustering)", fontsize=15, pad=15)
+    ax2[1].set_xlabel("Kategori Waktu", fontsize=12)
+    ax2[1].set_ylabel("Rata-rata Penyewaan", fontsize=12)
+    ax2[1].legend(title="Hari Kerja", labels=["Tidak (Hari Libur)", "Ya (Hari Kerja)"])
+
+    plt.tight_layout()
     st.pyplot(fig2)
 else:
     st.warning("Data tidak tersedia untuk rentang waktu ini.")
 
-st.caption("Dashboard diperbarui untuk memenuhi kriteria interaktif.")
+st.caption("Dashboard dibuat oleh: M Nafis Fakhrudin untuk Proyek Akhir Dicoding")
